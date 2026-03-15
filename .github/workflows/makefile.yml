@@ -2,54 +2,33 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-    
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-      
+          
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
-          pip install --user buildozer cython
-      
-      - name: Create buildozer.spec
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip
+          pip install buildozer cython
+          
+      - name: Build with buildozer
         run: |
-          cat > buildozer.spec << 'EOF'
-[app]
-title = قائد الكتيبة
-package.name = tdgs
-package.domain = org.tdgs
-source.dir = .
-source.include_exts = py,png,jpg,txt,json
-requirements = python3,pygame
-android.api = 29
-android.minapi = 21
-android.sdk = 29
-android.ndk = 23b
-android.archs = arm64-v8a
-[buildozer]
-log_level = 1
-EOF
-      
-      - name: Build APK
-        run: buildozer android debug
-        timeout-minutes: 30
-      
+          buildozer init
+          buildozer android debug
+          
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
-          name: tdgs-android-apk
+          name: tdgs-game
           path: bin/*.apk
-          if-no-files-found: warn
