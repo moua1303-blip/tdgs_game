@@ -1,0 +1,62 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # يتيح لك التشغيل يدوياً
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+        
+    - name: Install Python packages
+      run: |
+        pip install --user buildozer cython==0.29.33
+        pip install --user pillow numpy arabic-reshaper python-bidi
+        
+    - name: Initialize Buildozer
+      run: |
+        buildozer init
+        
+    - name: Update buildozer.spec for Android
+      run: |
+        sed -i 's/^title =.*/title = قائد الكتيبة/' buildozer.spec
+        sed -i 's/^package.name =.*/package.name = tdgs/' buildozer.spec
+        sed -i 's/^package.domain =.*/package.domain = org.yourname.tdgs/' buildozer.spec
+        sed -i 's/^source.include_exts =.*/source.include_exts = py,png,jpg,kv,ttf,txt,json/' buildozer.spec
+        sed -i 's/^requirements =.*/requirements = python3,pygame,jnius,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pillow,numpy,arabic-reshaper,python-bidi/' buildozer.spec
+        sed -i 's/^android.api =.*/android.api = 30/' buildozer.spec
+        sed -i 's/^android.minapi =.*/android.minapi = 21/' buildozer.spec
+        sed -i 's/^android.ndk =.*/android.ndk = 23b/' buildozer.spec
+        sed -i 's/^android.use_androidx =.*/android.use_androidx = True/' buildozer.spec
+        
+    - name: Create assets directory
+      run: |
+        mkdir -p assets/fonts
+        
+    - name: Build APK
+      run: |
+        buildozer -v android debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: tdgs-android-apk
+        path: bin/*.apk
