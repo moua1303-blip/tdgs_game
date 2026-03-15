@@ -9,150 +9,111 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04  # نسخة أقدم وأكثر استقراراً
+    runs-on: ubuntu-20.04
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'  # نسخة أكثر استقراراً
-        
-    - name: Install system dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y \
-          git \
-          zip \
-          unzip \
-          openjdk-17-jdk \
-          python3-pip \
-          autoconf \
-          libtool \
-          pkg-config \
-          zlib1g-dev \
-          libncurses5-dev \
-          libncursesw5-dev \
-          libtinfo5 \
-          cmake \
-          libffi-dev \
-          libssl-dev \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-ttf-dev \
-          libportmidi-dev \
-          libswscale-dev \
-          libavformat-dev \
-          libavcodec-dev \
-          zlib1g-dev \
-          libgstreamer1.0-dev \
-          libgstreamer-plugins-base1.0-dev \
-          libnotify-dev
-        
-    - name: Install Python packages
-      run: |
-        pip install --user --upgrade pip
-        pip install --user cython==0.29.24  # نسخة متوافقة
-        pip install --user buildozer
-        
-    - name: Create buildozer.spec
-      run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-
-# (str) Title of your application
-title = قائد الكتيبة
-
-# (str) Package name
-package.name = tdgs
-
-# (str) Package domain (needed for android)
-package.domain = org.tdgs
-
-# (str) Source code where the main.py lives
-source.dir = .
-
-# (list) Source files to include
-source.include_exts = py,png,jpg,kv,ttf,txt,json
-
-# (list) Application requirements
-requirements = python3,pygame,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pillow
-
-# (str) Application icon
-# icon.filename = %(source.dir)s/icon.png
-
-# (list) Permissions
-android.permissions = INTERNET
-
-# (int) Android API to use
-android.api = 29
-
-# (int) Minimum API
-android.minapi = 21
-
-# (int) Android SDK version to use
-android.sdk = 29
-
-# (str) Android NDK version to use
-android.ndk = 23b
-
-# (bool) Enable AndroidX support
-android.use_androidx = True
-
-# (str) Android archs to build for
-android.archs = arm64-v8a
-
-# (str) Path to a custom AndroidManifest.xml
-# android.manifest = %(source.dir)s/AndroidManifest.xml
-
-[buildozer]
-
-# (int) Log level (0=error, 1=info, 2=debug)
-log_level = 2
-
-# (str) Path to build artifacts to store
-warn_on_root = 1
-EOF
-        
-    - name: Create main.py if not exists
-      run: |
-        if [ ! -f main.py ]; then
-          echo 'from pygame_main import main' > main.py
-          echo 'if __name__ == "__main__":' >> main.py
-          echo '    main()' >> main.py
-        fi
-        
-    - name: Create __init__.py files
-      run: |
-        touch __init__.py
-        for dir in */; do
-          if [ -f "$dir" ]; then continue; fi
-          touch "${dir}__init__.py" 2>/dev/null || true
-        done
-        
-    - name: Show directory structure
-      run: |
-        echo "=== Directory structure ==="
-        ls -la
-        echo "=== Python files ==="
-        find . -name "*.py" | head -20
-        
-    - name: Set memory limits
-      run: |
-        echo "GRADLE_OPTS=-Xmx2048m" >> $GITHUB_ENV
-        echo "JAVA_OPTS=-Xmx2048m" >> $GITHUB_ENV
-        
-    - name: Build APK
-      run: |
-        buildozer -v android debug
-      timeout-minutes: 45
-        
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
-      with:
-        name: tdgs-android-apk
-        path: bin/*.apk
-        if-no-files-found: warn
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            python3-pip \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev \
+            libnotify-dev
+      
+      - name: Install Python packages
+        run: |
+          pip install --user --upgrade pip
+          pip install --user cython==0.29.24
+          pip install --user buildozer
+      
+      - name: Create buildozer.spec
+        run: |
+          echo '[app]' > buildozer.spec
+          echo 'title = قائد الكتيبة' >> buildozer.spec
+          echo 'package.name = tdgs' >> buildozer.spec
+          echo 'package.domain = org.tdgs' >> buildozer.spec
+          echo 'source.dir = .' >> buildozer.spec
+          echo 'source.include_exts = py,png,jpg,kv,ttf,txt,json' >> buildozer.spec
+          echo 'requirements = python3,pygame,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pillow' >> buildozer.spec
+          echo 'android.permissions = INTERNET' >> buildozer.spec
+          echo 'android.api = 29' >> buildozer.spec
+          echo 'android.minapi = 21' >> buildozer.spec
+          echo 'android.sdk = 29' >> buildozer.spec
+          echo 'android.ndk = 23b' >> buildozer.spec
+          echo 'android.use_androidx = True' >> buildozer.spec
+          echo 'android.archs = arm64-v8a' >> buildozer.spec
+          echo '' >> buildozer.spec
+          echo '[buildozer]' >> buildozer.spec
+          echo 'log_level = 2' >> buildozer.spec
+          echo 'warn_on_root = 1' >> buildozer.spec
+          
+      - name: Create main.py if not exists
+        run: |
+          if [ ! -f main.py ]; then
+            echo 'from pygame_main import main' > main.py
+            echo 'if __name__ == "__main__":' >> main.py
+            echo '    main()' >> main.py
+          fi
+      
+      - name: Create __init__.py files
+        run: |
+          touch __init__.py
+          for dir in */; do
+            if [ -f "$dir" ]; then continue; fi
+            touch "${dir}__init__.py" 2>/dev/null || true
+          done
+      
+      - name: Show directory structure
+        run: |
+          echo "=== Directory structure ==="
+          ls -la
+          echo "=== Python files ==="
+          find . -name "*.py" | head -20
+      
+      - name: Set memory limits
+        run: |
+          echo "GRADLE_OPTS=-Xmx2048m" >> $GITHUB_ENV
+          echo "JAVA_OPTS=-Xmx2048m" >> $GITHUB_ENV
+      
+      - name: Build APK
+        run: buildozer -v android debug
+        timeout-minutes: 45
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: tdgs-android-apk
+          path: bin/*.apk
+          if-no-files-found: warn
